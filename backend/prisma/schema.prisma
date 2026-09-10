@@ -1,0 +1,73 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  googleId   String   @unique @map("google_id")
+  email      String   @unique
+  name       String
+  avatar     String?
+  slackToken String?  @map("slack_token")
+  slackWebhook String? @map("slack_webhook")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  emailJobs       EmailJob[]
+  rateLimitEvents RateLimitEvent[]
+
+  @@map("users")
+}
+
+model EmailJob {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  recipientEmail  String    @map("recipient_email")
+  recipientName   String?   @map("recipient_name")
+  subject         String
+  body            String
+  scheduledAt     DateTime  @map("scheduled_at")
+  sentAt          DateTime? @map("sent_at")
+  status          JobStatus @default(SCHEDULED)
+  bullmqJobId     String?   @unique @map("bullmq_job_id")
+  etherealPreview String?   @map("ethereal_preview")
+  failureReason   String?   @map("failure_reason")
+  retryCount      Int       @default(0) @map("retry_count")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, scheduledAt])
+  @@map("email_jobs")
+}
+
+model RateLimitEvent {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  hourWindow    String   @map("hour_window") // format: YYYY-MM-DD-HH (UTC)
+  notifiedSlack Boolean  @default(false) @map("notified_slack")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, hourWindow])
+  @@map("rate_limit_events")
+}
+
+enum JobStatus {
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  RATE_LIMITED
+}
