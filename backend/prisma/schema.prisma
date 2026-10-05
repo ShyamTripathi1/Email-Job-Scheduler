@@ -12,7 +12,8 @@ datasource db {
 
 model User {
   id         String   @id @default(uuid())
-  googleId   String   @unique @map("google_id")
+  googleId   String?  @unique @map("google_id")
+  githubId   String?  @unique @map("github_id")
   email      String   @unique
   name       String
   avatar     String?

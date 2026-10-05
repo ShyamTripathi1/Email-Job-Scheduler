@@ -22,6 +22,9 @@ import slackRoutes from './routes/slack';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust reverse proxy (Render, Vercel, Heroku, etc.)
+app.set('trust proxy', 1);
+
 // ── CORS ──────────────────────────────────────────────────────────────────────
 app.use(
   cors({
@@ -34,12 +37,14 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── SESSION (Redis store) ─────────────────────────────────────────────────────
-const redisClient = createClient({
-  socket: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: Number(process.env.REDIS_PORT) || 6379,
-  },
-});
+const redisClient = process.env.REDIS_URL
+  ? createClient({ url: process.env.REDIS_URL })
+  : createClient({
+      socket: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      },
+    });
 redisClient.connect().catch(console.error);
 
 app.use(
@@ -51,6 +56,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
   })
@@ -65,7 +71,7 @@ app.use(passport.session());
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath('/admin/queues');
 createBullBoard({
-  queues: [new BullMQAdapter(emailQueue)],
+  queues: [new BullMQAdapter(emailQueue) as any],
   serverAdapter,
 });
 app.use('/admin/queues', serverAdapter.getRouter());

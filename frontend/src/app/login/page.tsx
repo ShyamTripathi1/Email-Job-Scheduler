@@ -54,12 +54,16 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 flex gap-4">
-            <button className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-extrabold rounded-xl px-4 py-3 transition-colors border-2 border-slate-300 shadow-md">
-              Google
-            </button>
-            <button className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-extrabold rounded-xl px-4 py-3 transition-colors border-2 border-slate-300 shadow-md">
-              GitHub
-            </button>
+            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/google`} className="w-full">
+              <button type="button" className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-extrabold rounded-xl px-4 py-3 transition-colors border-2 border-slate-300 shadow-md cursor-pointer">
+                Google
+              </button>
+            </a>
+            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/github`} className="w-full">
+              <button type="button" className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-extrabold rounded-xl px-4 py-3 transition-colors border-2 border-slate-300 shadow-md cursor-pointer">
+                GitHub
+              </button>
+            </a>
           </div>
         </div>
       </div>
